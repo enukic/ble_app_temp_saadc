@@ -348,7 +348,7 @@ static void c_serv_write_handler(uint32_t char_val, const os_evt * p_evt)
 //      ble_adv_modes_config_t emir;
 //      emir.ble_adv_fast_interval = 300;
 //      ble_advertising_modes_config_set(&m_advertising, &emir);
-    NRF_LOG_INFO("Recieved val [%d]",char_val);
+//    NRF_LOG_INFO("Recieved val [%d]",char_val);
 
     ret_code_t err_code;
     err_code = app_timer_stop(m_char_timer_id);
