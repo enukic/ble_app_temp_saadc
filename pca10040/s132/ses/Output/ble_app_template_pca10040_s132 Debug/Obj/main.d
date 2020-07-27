@@ -119,4 +119,7 @@ Output/ble_app_template_pca10040_s132\ Debug/Obj/main.o: \
  c:\sdk16\integration\nrfx\legacy\nrf_drv_saadc.h \
  c:\sdk16\modules\nrfx\drivers\include\nrfx_saadc.h \
  c:\sdk16\modules\nrfx\hal\nrf_saadc.h \
- c:\sdk16\components\libraries\scheduler\app_scheduler.h
+ c:\sdk16\components\libraries\scheduler\app_scheduler.h \
+ c:\sdk16\components\libraries\fstorage\nrf_fstorage.h \
+ c:\sdk16\components\libraries\fstorage\nrf_fstorage_sd.h \
+ c:\sdk16\components\libraries\fstorage\nrf_fstorage.h

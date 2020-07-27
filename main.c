@@ -47,6 +47,8 @@
 #include "cust_service.h"
 #include "nrf_drv_saadc.h"
 #include "app_scheduler.h"
+#include "nrf_fstorage.h"
+#include "nrf_fstorage_sd.h"
 
 
 
@@ -102,6 +104,25 @@ APP_TIMER_DEF(m_char_timer_id);
 
 nrf_saadc_value_t adc_result;
 uint16_t          batt_lvl_in_milli_volts;
+
+
+static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt);
+
+uint32_t f_cnt = 0;
+
+NRF_FSTORAGE_DEF(nrf_fstorage_t fstorage) =
+{
+    /* Set a handler for fstorage events. */
+    .evt_handler = fstorage_evt_handler,
+
+    /* These below are the boundaries of the flash space assigned to this instance of fstorage.
+     * You must set these manually, even at runtime, before nrf_fstorage_init() is called.
+     * The function nrf5_flash_end_addr_get() can be used to retrieve the last address on the
+     * last page of flash available to write data. */
+    .start_addr = 0x4e000,
+    .end_addr   = 0x4ffff,
+};
+
 
 
 
@@ -230,6 +251,19 @@ static void pm_evt_handler(pm_evt_t const * p_evt)
     }
 }
 
+//static f_write_handler(void *p_event_data, uint16_t event_size)
+//{
+////    f_cnt=5;
+//    nrf_fstorage_write(&fstorage, 0x4f000, &f_cnt, sizeof(f_cnt), NULL);
+//    NRF_LOG_INFO("WRITTEN TO FLASH: %d",f_cnt);
+//    if (NRF_LOG_PROCESS() == false)
+//    {
+//        nrf_pwr_mgmt_run();
+//    }
+//
+////    f_cnt++;
+//}
+
 
 static char_update_handler(void * p_event_data, uint16_t event_size)
 {
@@ -248,7 +282,8 @@ static char_update_handler(void * p_event_data, uint16_t event_size)
 
     nrf_gpio_pin_toggle(LED_4);
 
-
+//    app_sched_event_put(NULL, 0, f_write_handler);
+    
 }
 
 
@@ -794,12 +829,23 @@ void saadc_init(void)
 
 }
 
+static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt)
+{
+//  Dummy handler
+    uint32_t f_r;
+    nrf_fstorage_read(&fstorage,0x4f000, &f_r,4);
+//    f_cnt++;
+    NRF_LOG_INFO("-----> READ FROM FLASH: %d",f_r);
+}
+
 
 /**@brief Function for application main entry.
  */
 int main(void)
 {
     bool erase_bonds;
+    nrf_fstorage_api_t * p_fs_api;
+    p_fs_api = &nrf_fstorage_sd;
 
     // Initialize.
     log_init();
@@ -815,16 +861,42 @@ int main(void)
     peer_manager_init();
     saadc_init();
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE,SCHED_QUEUE_SIZE);
+    nrf_fstorage_init(&fstorage, p_fs_api, NULL);
 
     // Start execution.
     NRF_LOG_INFO("Template example started.");
     application_timers_start();
 
     advertising_start(erase_bonds);
-
+    
+    ret_code_t err_code;
+    uint32_t eee = 0x6f;
+    err_code = nrf_fstorage_write(&fstorage, 0x4f000, &eee, sizeof(eee), NULL);
+    APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("WRITTEN TO FLASH: %d",eee);
+    while (nrf_fstorage_is_busy(&fstorage))
+    {
+        #ifdef SOFTDEVICE_PRESENT
+            (void) sd_app_evt_wait();
+        #else
+            __WFE();
+        #endif
+    }
+    eee++;
     // Enter main loop.
     for (;;)
     {
+//        nrf_fstorage_write(&fstorage, 0x4f000, &eee, sizeof(eee), NULL);
+//        NRF_LOG_INFO("WRITTEN TO FLASH: %d",eee);
+//        while (nrf_fstorage_is_busy(&fstorage))
+//    {
+//        #ifdef SOFTDEVICE_PRESENT
+//            (void) sd_app_evt_wait();
+//        #else
+//            __WFE();
+//        #endif
+//    }
+//        eee++;
         app_sched_execute();
         idle_state_handle();
     }
