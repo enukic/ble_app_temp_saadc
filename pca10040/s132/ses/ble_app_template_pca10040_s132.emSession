@@ -63,7 +63,7 @@
  <Files>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="34" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../cust_service.h" selected="0" top="18" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="33" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../cust_service.c" selected="0" top="22" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="844" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="834" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="858" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="823" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="222" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/softdevice/s132/headers/ble_gatts.h" selected="0" top="210" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="849" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/softdevice/s132/headers/ble_gap.h" selected="0" top="831" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="220" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/softdevice/s132/headers/ble.h" selected="0" top="209" codecName="Default"/>
@@ -71,11 +71,11 @@
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="52" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/ble/common/ble_srv_common.c" selected="0" top="38" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="1150" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/app_util.h" selected="0" top="1139" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="39" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/timer/app_timer2.c" selected="0" top="38" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="29" y="148" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/fstorage/nrf_fstorage.c" selected="0" top="133" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="18" y="256" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/fstorage/nrf_fstorage.h" selected="0" top="246" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="148" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/fstorage/nrf_fstorage.c" selected="0" top="133" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="256" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/fstorage/nrf_fstorage.h" selected="0" top="246" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="610" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/fstorage/nrf_fstorage_sd.c" selected="0" top="605" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="99" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/app_error_weak.c" selected="0" top="92" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="99" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/app_error_weak.c" selected="0" top="92" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="60" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/sdk_errors.h" selected="0" top="40" codecName="Default"/>
  </Files>
- <ARMCrossStudioWindow activeProject="ble_app_template_pca10040_s132" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="C:/SDK16/components/libraries/fstorage" debugSearchPath="" autoConnectCapabilities="3711"/>
+ <ARMCrossStudioWindow activeProject="ble_app_template_pca10040_s132" fileDialogDefaultFilter="" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="C:/SDK16/modules/nrfx/mdk/ses_startup_nrf52.s&#xa;D:/SDK16/modules/nrfx/mdk/ses_startup_nrf52.s" fileDialogInitialDirectory="D:/SDK16/modules/nrfx/mdk" debugSearchPath="" autoConnectCapabilities="3711"/>
 </session>

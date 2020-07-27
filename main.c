@@ -108,7 +108,8 @@ uint16_t          batt_lvl_in_milli_volts;
 
 static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt);
 
-uint32_t f_cnt = 0;
+uint32_t f_cnt = 0, f_add_current = 0x4e000;
+
 
 NRF_FSTORAGE_DEF(nrf_fstorage_t fstorage) =
 {
@@ -281,8 +282,18 @@ static char_update_handler(void * p_event_data, uint16_t event_size)
     saadc_characteristic_update(&m_c_service, &batt_lvl_in_milli_volts);
 
     nrf_gpio_pin_toggle(LED_4);
-
-//    app_sched_event_put(NULL, 0, f_write_handler);
+    uint32_t to_send = (uint32_t)batt_lvl_in_milli_volts;
+    nrf_fstorage_write(&fstorage, f_add_current, &to_send, sizeof(to_send), NULL);
+//    APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("WRITTEN TO FLASH: %d",to_send);
+    while (nrf_fstorage_is_busy(&fstorage))
+    {
+        #ifdef SOFTDEVICE_PRESENT
+            (void) sd_app_evt_wait();
+        #else
+            __WFE();
+        #endif
+    }
     
 }
 
@@ -833,9 +844,12 @@ static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt)
 {
 //  Dummy handler
     uint32_t f_r;
-    nrf_fstorage_read(&fstorage,0x4f000, &f_r,4);
+    nrf_fstorage_read(&fstorage,f_add_current, &f_r,4);
 //    f_cnt++;
     NRF_LOG_INFO("-----> READ FROM FLASH: %d",f_r);
+    f_add_current = f_add_current + 4;
+    if(f_add_current == 0x5e000)
+        f_add_current = 0x4e000;
 }
 
 
@@ -869,34 +883,9 @@ int main(void)
 
     advertising_start(erase_bonds);
     
-    ret_code_t err_code;
-    uint32_t eee = 0x6f;
-    err_code = nrf_fstorage_write(&fstorage, 0x4f000, &eee, sizeof(eee), NULL);
-    APP_ERROR_CHECK(err_code);
-    NRF_LOG_INFO("WRITTEN TO FLASH: %d",eee);
-    while (nrf_fstorage_is_busy(&fstorage))
-    {
-        #ifdef SOFTDEVICE_PRESENT
-            (void) sd_app_evt_wait();
-        #else
-            __WFE();
-        #endif
-    }
-    eee++;
     // Enter main loop.
     for (;;)
     {
-//        nrf_fstorage_write(&fstorage, 0x4f000, &eee, sizeof(eee), NULL);
-//        NRF_LOG_INFO("WRITTEN TO FLASH: %d",eee);
-//        while (nrf_fstorage_is_busy(&fstorage))
-//    {
-//        #ifdef SOFTDEVICE_PRESENT
-//            (void) sd_app_evt_wait();
-//        #else
-//            __WFE();
-//        #endif
-//    }
-//        eee++;
         app_sched_execute();
         idle_state_handle();
     }
