@@ -88,9 +88,10 @@ BLE_ADVERTISING_DEF(m_advertising);                                             
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                        /**< Handle of the current connection. */
 
 ble_os_t m_c_service;
+ble_os_t m_flash_serv;
 
 APP_TIMER_DEF(m_char_timer_id);
-#define CH_TIMER_INTERVAL APP_TIMER_TICKS(1000)
+#define CH_TIMER_INTERVAL APP_TIMER_TICKS(2000)
 
 //#define SCHED_MAX_EVENT_DATA_SIZE       MAX(sizeof(nrf_drv_gpiote_pin_t), APP_TIMER_SCHED_EVENT_DATA_SIZE)
 #define SCHED_MAX_EVENT_DATA_SIZE       APP_TIMER_SCHED_EVENT_DATA_SIZE
@@ -108,7 +109,9 @@ uint16_t          batt_lvl_in_milli_volts;
 
 static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt);
 
-uint32_t f_cnt = 0, f_add_current = 0x4e000;
+uint32_t f_cnt = 0, f_add_current = 0x4e000, f_add_read = 0x4e000;
+//uint32_t 
+uint8_t init_erase = 0;
 
 
 NRF_FSTORAGE_DEF(nrf_fstorage_t fstorage) =
@@ -122,6 +125,7 @@ NRF_FSTORAGE_DEF(nrf_fstorage_t fstorage) =
      * last page of flash available to write data. */
     .start_addr = 0x4e000,
     .end_addr   = 0x4ffff,
+    // Reminder: A page is 0x1000 bytes (4096 bytes)
 };
 
 
@@ -252,47 +256,108 @@ static void pm_evt_handler(pm_evt_t const * p_evt)
     }
 }
 
-//static f_write_handler(void *p_event_data, uint16_t event_size)
-//{
-////    f_cnt=5;
-//    nrf_fstorage_write(&fstorage, 0x4f000, &f_cnt, sizeof(f_cnt), NULL);
-//    NRF_LOG_INFO("WRITTEN TO FLASH: %d",f_cnt);
-//    if (NRF_LOG_PROCESS() == false)
-//    {
-//        nrf_pwr_mgmt_run();
-//    }
-//
-////    f_cnt++;
-//}
+
 
 
 static char_update_handler(void * p_event_data, uint16_t event_size)
 {
-    int32_t temperature = 0;   
-    sd_temp_get(&temperature);
-    temperature=temperature/4;
-    temperature_characteristic_update(&m_c_service, &temperature);
 
-    nrf_drv_saadc_sample_convert(0, &adc_result);
-
-    batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result) +
-                                  0;
-    NRF_LOG_INFO("adc val: [%d]  [%x]", batt_lvl_in_milli_volts,batt_lvl_in_milli_volts);
-
-    saadc_characteristic_update(&m_c_service, &batt_lvl_in_milli_volts);
-
-    nrf_gpio_pin_toggle(LED_4);
-    uint32_t to_send = (uint32_t)batt_lvl_in_milli_volts;
-    nrf_fstorage_write(&fstorage, f_add_current, &to_send, sizeof(to_send), NULL);
-//    APP_ERROR_CHECK(err_code);
-    NRF_LOG_INFO("WRITTEN TO FLASH: %d",to_send);
-    while (nrf_fstorage_is_busy(&fstorage))
+    if(m_conn_handle == BLE_CONN_HANDLE_INVALID)
     {
-        #ifdef SOFTDEVICE_PRESENT
-            (void) sd_app_evt_wait();
-        #else
-            __WFE();
-        #endif
+        if(init_erase == 1)
+        {
+            nrf_fstorage_erase(&fstorage, fstorage.start_addr, 2, NULL);
+            while (nrf_fstorage_is_busy(&fstorage))
+            {
+                #ifdef SOFTDEVICE_PRESENT
+                    (void) sd_app_evt_wait();
+                #else
+                    __WFE();
+                #endif
+            }
+            init_erase      = 0;
+            f_cnt           = 0;
+            f_add_current   = fstorage.start_addr;
+            f_add_read      = fstorage.start_addr;
+        }
+        NRF_LOG_INFO("NOT CONNECTED");
+        
+        int32_t temperature = 0;   
+        sd_temp_get(&temperature);
+        temperature=temperature/4;
+
+        nrf_drv_saadc_sample_convert(0, &adc_result);
+
+        batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result) +
+                                      0;
+        NRF_LOG_INFO("tmp val: [%d]  [%x]", temperature,temperature);
+        NRF_LOG_INFO("adc val: [%d]  [%x]", batt_lvl_in_milli_volts,batt_lvl_in_milli_volts);
+
+
+        uint32_t to_send = (uint32_t)temperature;
+        nrf_fstorage_write(&fstorage, f_add_current, &to_send, sizeof(to_send), NULL);
+        NRF_LOG_INFO("WRITTEN TO FLASH: %x",to_send);
+        while (nrf_fstorage_is_busy(&fstorage))
+        {
+            #ifdef SOFTDEVICE_PRESENT
+                (void) sd_app_evt_wait();
+            #else
+                __WFE();
+            #endif
+        }
+        f_cnt++;
+
+        to_send = (uint32_t)batt_lvl_in_milli_volts;
+        nrf_fstorage_write(&fstorage, f_add_current, &to_send, sizeof(to_send), NULL);
+        NRF_LOG_INFO("WRITTEN TO FLASH: %x",to_send);
+        while (nrf_fstorage_is_busy(&fstorage))
+        {
+            #ifdef SOFTDEVICE_PRESENT
+                (void) sd_app_evt_wait();
+            #else
+                __WFE();
+            #endif
+        }
+        f_cnt++;
+
+
+    }
+    else
+    {
+        NRF_LOG_INFO("CONNECTED");
+        if(f_cnt == 0)
+        {//If there are no samples in Flash, sample and send data.
+            int32_t temperature = 0;   
+            sd_temp_get(&temperature);
+            temperature=temperature/4;
+            temperature_characteristic_update(&m_c_service, &temperature);
+
+            nrf_drv_saadc_sample_convert(0, &adc_result);
+
+            batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result) +
+                                          0;
+            NRF_LOG_INFO("tmp val: [%d]  [%x]", temperature,temperature);
+            NRF_LOG_INFO("adc val: [%d]  [%x]", batt_lvl_in_milli_volts,batt_lvl_in_milli_volts);
+
+            saadc_characteristic_update(&m_c_service, &batt_lvl_in_milli_volts);
+
+            nrf_gpio_pin_toggle(LED_4);
+        }
+        else
+        {//Send data from Flash first.
+            uint32_t tmp_fread;
+            nrf_fstorage_read(&fstorage, f_add_read, &tmp_fread, 4);
+            f_cnt--;
+            f_add_read = f_add_read + 4;
+            NRF_LOG_INFO("TMP: %x \n%d samples left in buffer",tmp_fread, f_cnt);
+            temperature_characteristic_update(&m_flash_serv, &tmp_fread);
+            nrf_fstorage_read(&fstorage, f_add_read, &tmp_fread, 4);
+            f_cnt--;
+            f_add_read = f_add_read + 4;
+            NRF_LOG_INFO("TMP: %x \n%d samples left in buffer",tmp_fread, f_cnt);
+            saadc_characteristic_update(&m_flash_serv, &tmp_fread);
+        }
+        
     }
     
 }
@@ -423,6 +488,8 @@ static void services_init(void)
     os_init.event_handler = c_serv_write_handler;
 
     c_service_init(&m_c_service, &os_init);
+
+    c_flash_serv_init(&m_flash_serv);
 }
 
 
@@ -556,6 +623,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         case BLE_GAP_EVT_DISCONNECTED:
             NRF_LOG_INFO("Disconnected.");
             // LED indication will be changed when advertising starts.
+            m_conn_handle = BLE_CONN_HANDLE_INVALID;
+            init_erase = 1;
             break;
 
         case BLE_GAP_EVT_CONNECTED:
@@ -627,6 +696,7 @@ static void ble_stack_init(void)
     NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
 
     NRF_SDH_BLE_OBSERVER(m_c_service_observer, APP_BLE_OBSERVER_PRIO, ble_c_service_on_ble_evt, (void*) &m_c_service);
+    NRF_SDH_BLE_OBSERVER(m_flash_service_observer, APP_BLE_OBSERVER_PRIO, ble_c_service_on_ble_evt, (void*) &m_flash_serv);
 }
 
 
@@ -845,11 +915,13 @@ static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt)
 //  Dummy handler
     uint32_t f_r;
     nrf_fstorage_read(&fstorage,f_add_current, &f_r,4);
-//    f_cnt++;
-    NRF_LOG_INFO("-----> READ FROM FLASH: %d",f_r);
+    NRF_LOG_INFO("-----> READ FROM FLASH: %x\n EVENT NO[%x]",f_r,f_add_current);
     f_add_current = f_add_current + 4;
     if(f_add_current == 0x5e000)
-        f_add_current = 0x4e000;
+    {
+        f_add_current = 0x4e000;  //Redundant - this is done in init_erase part
+        init_erase    = 1;        //Erase 2 pages, starting 0x4e000
+    }
 }
 
 
@@ -879,6 +951,20 @@ int main(void)
 
     // Start execution.
     NRF_LOG_INFO("Template example started.");
+    nrf_fstorage_erase(&fstorage, fstorage.start_addr, 2, NULL);
+    while (nrf_fstorage_is_busy(&fstorage))
+    {
+        #ifdef SOFTDEVICE_PRESENT
+            (void) sd_app_evt_wait();
+        #else
+            __WFE();
+        #endif
+    }
+    uint32_t tmp_32 = 0;
+    nrf_fstorage_read(&fstorage, fstorage.start_addr, &tmp_32, 4);
+    NRF_LOG_INFO("FLASH ERASE CHECK: %x",tmp_32);
+    f_add_current = fstorage.start_addr;
+
     application_timers_start();
 
     advertising_start(erase_bonds);

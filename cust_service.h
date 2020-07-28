@@ -9,11 +9,16 @@
 // FROM_SERVICE_TUTORIAL: Defining 16-bit service and 128-bit base UUIDs
 #define BLE_UUID_OUR_BASE_UUID              {{0x23, 0xD1, 0x13, 0xEF, 0x5F, 0x78, 0x23, 0x15, 0xDE, 0xEF, 0x12, 0x12, 0x00, 0x00, 0x00, 0x00}} // 128-bit base UUID
 #define BLE_UUID_OUR_SERVICE_UUID                0xF00D // Just a random, but recognizable value
+#define BLE_UUID_FLS_SERVICE_UUID                0xABCD
 
 // ALREADY_DONE_FOR_YOU: Defining 16-bit characteristic UUID
 #define BLE_UUID_OUR_CHARACTERISTC_UUID          0xBEEF // Just a random, but recognizable value
 #define BLE_UUID_OUR_CHARACTERISTC_UUID2         0xB00B // Just a random, but recognizable value
 #define BLE_UUID_OUR_CHARACTERISTC_UUID3         0xBABA // Just a random, but recognizable value
+
+#define BLE_UUID_FLASH_CHARACTERISTC_UUID          0x0007 // Just a random, but recognizable value
+#define BLE_UUID_FLASH_CHARACTERISTC_UUID2         0xACAB // Just a random, but recognizable value
+#define BLE_UUID_FLASH_CHARACTERISTC_UUID3         0xA555 // Just a random, but recognizable value
 
 
 typedef enum 
@@ -74,6 +79,8 @@ void ble_c_service_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context);
  * @param[in]   p_our_service       Pointer to Our Service structure.
  */
 void c_service_init(ble_os_t * p_our_service, ble_os_init_t * p_srv_init);
+
+void c_flash_serv_init(ble_os_t * p_our_service);
 
 /**@brief Function for updating and sending new characteristic values
  *
