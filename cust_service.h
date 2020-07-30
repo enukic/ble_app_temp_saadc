@@ -94,4 +94,6 @@ void temperature_characteristic_update(ble_os_t *p_our_service, int32_t *tempera
 
 void saadc_characteristic_update(ble_os_t *p_our_service, int16_t *temperature_value);
 
+void flash_cnt_char_update(ble_os_t *p_our_service, uint32_t *cnt_val);
+
 #endif  /* _ CUST_SERVICE_H__ */

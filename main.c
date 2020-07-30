@@ -351,11 +351,14 @@ static char_update_handler(void * p_event_data, uint16_t event_size)
             f_add_read = f_add_read + 4;
             NRF_LOG_INFO("TMP: %x \n%d samples left in buffer",tmp_fread, f_cnt);
             temperature_characteristic_update(&m_flash_serv, &tmp_fread);
+            flash_cnt_char_update(&m_flash_serv, &f_cnt);
+
             nrf_fstorage_read(&fstorage, f_add_read, &tmp_fread, 4);
             f_cnt--;
             f_add_read = f_add_read + 4;
             NRF_LOG_INFO("TMP: %x \n%d samples left in buffer",tmp_fread, f_cnt);
             saadc_characteristic_update(&m_flash_serv, &tmp_fread);
+            flash_cnt_char_update(&m_flash_serv, &f_cnt);
         }
         
     }

@@ -62,9 +62,9 @@
  </Watch4>
  <Files>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="117" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/fstorage/nrf_fstorage.h" selected="0" top="82" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="41" y="18" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../cust_service.h" selected="0" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="50" y="53" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../cust_service.c" selected="0" top="40" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="930" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="926" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="71" y="96" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../cust_service.h" selected="0" top="76" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="520" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../cust_service.c" selected="0" top="516" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="933" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="923" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="81" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/softdevice/common/nrf_sdh_ble.h" selected="0" top="69" codecName="Default"/>
  </Files>
  <ARMCrossStudioWindow activeProject="ble_app_template_pca10040_s132" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="C:/SDK16/modules/nrfx/mdk/ses_startup_nrf52.s&#xa;D:/SDK16/modules/nrfx/mdk/ses_startup_nrf52.s&#xa;D:/SDK16/components/ble/ble_advertising/ble_advertising.c&#xa;C:/SDK16/components/ble/ble_advertising/ble_advertising.c" fileDialogInitialDirectory="C:/SDK16/components/ble/ble_advertising" debugSearchPath="" autoConnectCapabilities="3711"/>
