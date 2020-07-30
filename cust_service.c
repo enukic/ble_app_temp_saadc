@@ -14,24 +14,24 @@
 
 static void on_write(ble_os_t *p_service, ble_evt_t const * p_ble_evt)
 {
-    NRF_LOG_INFO("on_write: Called");
+//    NRF_LOG_INFO("on_write: Called");
     ble_gatts_evt_write_t const * p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
     os_evt event;
 
     if((p_evt_write->handle == p_service->char_handles3.value_handle))
     {
          
-        NRF_LOG_INFO("on_write: started");
+//        NRF_LOG_INFO("on_write: started");
         uint32_t charval_val;
         uint8_t  value[4];
         for(int i=0;i<p_evt_write->len;i++)
         {
               value[i] = p_evt_write->data[i];
         }
-        NRF_LOG_INFO(" ------> %x %x %x %x",value[0],value[1],value[2],value[3]);
+//        NRF_LOG_INFO(" ------> %x %x %x %x",value[0],value[1],value[2],value[3]);
         charval_val = uint32_decode(value);
-        NRF_LOG_INFO(" ------> %x",charval_val);
-        NRF_LOG_INFO(" ------> %d",charval_val);
+//        NRF_LOG_INFO(" ------> %x",charval_val);
+//        NRF_LOG_INFO(" ------> %d",charval_val);
 
 //         event.event_type = OS_EVT_TEMPERATURE_NOTIF_ENABLE;
         p_service->event_handler(charval_val,&event);
@@ -77,13 +77,10 @@ static uint32_t char_temp_add(ble_os_t * p_our_service)
     err_code = sd_ble_uuid_vs_add(&base_uuid, &char_uuid.type);
     APP_ERROR_CHECK(err_code); 
 
-
-    
     ble_gatts_char_md_t char_md;
     memset(&char_md, 0, sizeof(char_md));
     char_md.char_props.read = 1;
 //    char_md.char_props.write = 1;
-
 
     ble_gatts_attr_md_t cccd_md;
     memset(&cccd_md, 0, sizeof(cccd_md));
@@ -93,24 +90,18 @@ static uint32_t char_temp_add(ble_os_t * p_our_service)
     char_md.p_cccd_md           = &cccd_md;
     char_md.char_props.notify   = 1;
 
-
-   
     ble_gatts_attr_md_t attr_md;
     memset(&attr_md, 0, sizeof(attr_md));
     attr_md.vloc        = BLE_GATTS_VLOC_STACK; 
 
-	
-    
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
 //    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
 
-    
     ble_gatts_attr_t    attr_char_value;
     memset(&attr_char_value, 0, sizeof(attr_char_value));    
     attr_char_value.p_uuid      = &char_uuid;
     attr_char_value.p_attr_md   = &attr_md;
 
-   
     attr_char_value.max_len     = 1;
     attr_char_value.init_len    = 1;
     uint8_t value[1]            = {0};
@@ -122,7 +113,6 @@ static uint32_t char_temp_add(ble_os_t * p_our_service)
                                        &attr_char_value,
                                        &p_our_service->char_handles);
     APP_ERROR_CHECK(err_code);
-
     return NRF_SUCCESS;
 }
 
@@ -136,15 +126,11 @@ static uint32_t char_adc_add(ble_os_t * p_our_service)
     err_code = sd_ble_uuid_vs_add(&base_uuid, &char_uuid.type);
     APP_ERROR_CHECK(err_code); 
 
-    
     ble_gatts_char_md_t char_md;
 
     memset(&char_md, 0, sizeof(char_md));
     char_md.char_props.read = 1;
 //    char_md.char_props.write = 1;
-
-
-
 
     ble_gatts_attr_md_t cccd_md;
     memset(&cccd_md, 0, sizeof(cccd_md));
@@ -158,29 +144,24 @@ static uint32_t char_adc_add(ble_os_t * p_our_service)
     memset(&attr_md, 0, sizeof(attr_md));
     attr_md.vloc        = BLE_GATTS_VLOC_STACK; 
 
-    
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
 //    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
 
-   
     ble_gatts_attr_t    attr_char_value;
     memset(&attr_char_value, 0, sizeof(attr_char_value));    
     attr_char_value.p_uuid      = &char_uuid;
     attr_char_value.p_attr_md   = &attr_md;
 
-    
     attr_char_value.max_len     = 2;
     attr_char_value.init_len    = 2;
     uint8_t value[2]            = {0,0};
     attr_char_value.p_value     = value;
     
-
     err_code = sd_ble_gatts_characteristic_add(p_our_service->service_handle,
                                        &char_md,
                                        &attr_char_value,
                                        &p_our_service->char_handles2);
     APP_ERROR_CHECK(err_code);
-
 
     return NRF_SUCCESS;
 }
@@ -194,13 +175,10 @@ static uint32_t char_interval_add(ble_os_t * p_our_service)
     err_code = sd_ble_uuid_vs_add(&base_uuid, &char_uuid.type);
     APP_ERROR_CHECK(err_code); 
 
-
-    
     ble_gatts_char_md_t char_md;
     memset(&char_md, 0, sizeof(char_md));
     char_md.char_props.read = 1;
     char_md.char_props.write = 1;
-
 
     ble_gatts_attr_md_t cccd_md;
     memset(&cccd_md, 0, sizeof(cccd_md));
@@ -210,37 +188,29 @@ static uint32_t char_interval_add(ble_os_t * p_our_service)
     char_md.p_cccd_md           = &cccd_md;
     char_md.char_props.notify   = 1;
 
-
-   
     ble_gatts_attr_md_t attr_md;
     memset(&attr_md, 0, sizeof(attr_md));
     attr_md.vloc        = BLE_GATTS_VLOC_STACK; 
-//    attr_md.vlen        = 1;
+//    attr_md.vlen        = 1;      //IF you want to set variabl char length
 
-	
-    
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
 
-    
     ble_gatts_attr_t    attr_char_value;
     memset(&attr_char_value, 0, sizeof(attr_char_value));    
     attr_char_value.p_uuid      = &char_uuid;
     attr_char_value.p_attr_md   = &attr_md;
 
-   
     attr_char_value.max_len     = 4;
     attr_char_value.init_len    = 4;
     uint8_t value[4]            = {0x00,0x00,0x00,0x00};
     attr_char_value.p_value     = value;
-
 
     err_code = sd_ble_gatts_characteristic_add(p_our_service->service_handle,
                                        &char_md,
                                        &attr_char_value,
                                        &p_our_service->char_handles3);
     APP_ERROR_CHECK(err_code);
-
     return NRF_SUCCESS;
 }
 
@@ -253,13 +223,10 @@ static uint32_t char_flash_temp_add(ble_os_t * p_our_service)
     err_code = sd_ble_uuid_vs_add(&base_uuid, &char_uuid.type);
     APP_ERROR_CHECK(err_code); 
 
-
-    
     ble_gatts_char_md_t char_md;
     memset(&char_md, 0, sizeof(char_md));
     char_md.char_props.read = 1;
 //    char_md.char_props.write = 1;
-
 
     ble_gatts_attr_md_t cccd_md;
     memset(&cccd_md, 0, sizeof(cccd_md));
@@ -269,36 +236,28 @@ static uint32_t char_flash_temp_add(ble_os_t * p_our_service)
     char_md.p_cccd_md           = &cccd_md;
     char_md.char_props.notify   = 1;
 
-
-   
     ble_gatts_attr_md_t attr_md;
     memset(&attr_md, 0, sizeof(attr_md));
     attr_md.vloc        = BLE_GATTS_VLOC_STACK; 
 
-	
-    
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
 //    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
 
-    
     ble_gatts_attr_t    attr_char_value;
     memset(&attr_char_value, 0, sizeof(attr_char_value));    
     attr_char_value.p_uuid      = &char_uuid;
     attr_char_value.p_attr_md   = &attr_md;
 
-   
     attr_char_value.max_len     = 1;
     attr_char_value.init_len    = 1;
     uint8_t value[1]            = {0};
     attr_char_value.p_value     = value;
-
 
     err_code = sd_ble_gatts_characteristic_add(p_our_service->service_handle,
                                        &char_md,
                                        &attr_char_value,
                                        &p_our_service->char_handles);
     APP_ERROR_CHECK(err_code);
-
     return NRF_SUCCESS;
 }
 
@@ -312,15 +271,11 @@ static uint32_t char_flash_adc_add(ble_os_t * p_our_service)
     err_code = sd_ble_uuid_vs_add(&base_uuid, &char_uuid.type);
     APP_ERROR_CHECK(err_code); 
 
-    
     ble_gatts_char_md_t char_md;
 
     memset(&char_md, 0, sizeof(char_md));
     char_md.char_props.read = 1;
 //    char_md.char_props.write = 1;
-
-
-
 
     ble_gatts_attr_md_t cccd_md;
     memset(&cccd_md, 0, sizeof(cccd_md));
@@ -334,30 +289,24 @@ static uint32_t char_flash_adc_add(ble_os_t * p_our_service)
     memset(&attr_md, 0, sizeof(attr_md));
     attr_md.vloc        = BLE_GATTS_VLOC_STACK; 
 
-    
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
 //    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
 
-   
     ble_gatts_attr_t    attr_char_value;
     memset(&attr_char_value, 0, sizeof(attr_char_value));    
     attr_char_value.p_uuid      = &char_uuid;
     attr_char_value.p_attr_md   = &attr_md;
 
-    
     attr_char_value.max_len     = 2;
     attr_char_value.init_len    = 2;
     uint8_t value[2]            = {0,0};
     attr_char_value.p_value     = value;
     
-
     err_code = sd_ble_gatts_characteristic_add(p_our_service->service_handle,
                                        &char_md,
                                        &attr_char_value,
                                        &p_our_service->char_handles2);
     APP_ERROR_CHECK(err_code);
-
-
     return NRF_SUCCESS;
 }
 
@@ -370,8 +319,6 @@ static uint32_t char_flash_cnt_add(ble_os_t * p_our_service)
     err_code = sd_ble_uuid_vs_add(&base_uuid, &char_uuid.type);
     APP_ERROR_CHECK(err_code); 
 
-
-    
     ble_gatts_char_md_t char_md;
     memset(&char_md, 0, sizeof(char_md));
     char_md.char_props.read = 1;
@@ -407,7 +354,6 @@ static uint32_t char_flash_cnt_add(ble_os_t * p_our_service)
                                        &attr_char_value,
                                        &p_our_service->char_handles3);
     APP_ERROR_CHECK(err_code);
-
     return NRF_SUCCESS;
 }
 
@@ -488,7 +434,6 @@ void temperature_characteristic_update(ble_os_t *p_our_service, int32_t *tempera
         hvx_params.p_len  = &len;
         hvx_params.p_data = (uint8_t*)temperature_value;
         
-
         sd_ble_gatts_hvx(p_our_service->conn_handle, &hvx_params);
     }
 
@@ -510,8 +455,6 @@ void saadc_characteristic_update(ble_os_t *p_our_service, int16_t *adc_value)
         hvx_params.p_len  = &len;
         hvx_params.p_data = (uint8_t*)adc_value;  
 
-//        NRF_LOG_INFO("adc val: %x", *hvx_params.p_data);
-
         sd_ble_gatts_hvx(p_our_service->conn_handle, &hvx_params);
     }
 
@@ -532,7 +475,6 @@ void flash_cnt_char_update(ble_os_t *p_our_service, uint32_t *cnt_val)
         hvx_params.p_len  = &len;
         hvx_params.p_data = (uint8_t*)cnt_val;
         
-
         sd_ble_gatts_hvx(p_our_service->conn_handle, &hvx_params);
     }
 

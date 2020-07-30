@@ -109,8 +109,14 @@ uint16_t          batt_lvl_in_milli_volts;
 
 static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt);
 
+/*
+    f_cnt           is used to count samples written to flash. It is decremented every time 1 sample is sent via notifications
+    eventhough it's still in flash (Flash is erased when f_cnt reaches zero or device is disconnected)
+    f_add_current   is a pointer to the next flash addres to be written to (it is incrementded by 4 every time event occurs
+    f_add_read      is a pointer to the next flash addres to be read (same as f_add_current)
+
+*/
 uint32_t f_cnt = 0, f_add_current = 0x4e000, f_add_read = 0x4e000;
-//uint32_t 
 uint8_t init_erase = 0;
 
 
@@ -263,9 +269,9 @@ static char_update_handler(void * p_event_data, uint16_t event_size)
 {
 
     if(m_conn_handle == BLE_CONN_HANDLE_INVALID)
-    {
+    {// If device is not connected -> Write samples to flash
         if(init_erase == 1)
-        {
+        {// Initial flash erase occurs when device is disconnected or when nRF is started for the first time
             nrf_fstorage_erase(&fstorage, fstorage.start_addr, 2, NULL);
             while (nrf_fstorage_is_busy(&fstorage))
             {
@@ -280,23 +286,19 @@ static char_update_handler(void * p_event_data, uint16_t event_size)
             f_add_current   = fstorage.start_addr;
             f_add_read      = fstorage.start_addr;
         }
-        NRF_LOG_INFO("NOT CONNECTED");
+//        NRF_LOG_INFO("NOT CONNECTED");
         
         int32_t temperature = 0;   
         sd_temp_get(&temperature);
         temperature=temperature/4;
-
         nrf_drv_saadc_sample_convert(0, &adc_result);
-
-        batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result) +
-                                      0;
-        NRF_LOG_INFO("tmp val: [%d]  [%x]", temperature,temperature);
-        NRF_LOG_INFO("adc val: [%d]  [%x]", batt_lvl_in_milli_volts,batt_lvl_in_milli_volts);
-
+        batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result);
+//        NRF_LOG_INFO("tmp val: [%d]  [%x]", temperature,temperature);
+//        NRF_LOG_INFO("adc val: [%d]  [%x]", batt_lvl_in_milli_volts,batt_lvl_in_milli_volts);
 
         uint32_t to_send = (uint32_t)temperature;
         nrf_fstorage_write(&fstorage, f_add_current, &to_send, sizeof(to_send), NULL);
-        NRF_LOG_INFO("WRITTEN TO FLASH: %x",to_send);
+//        NRF_LOG_INFO("WRITTEN TO FLASH: %x",to_send);
         while (nrf_fstorage_is_busy(&fstorage))
         {
             #ifdef SOFTDEVICE_PRESENT
@@ -309,7 +311,7 @@ static char_update_handler(void * p_event_data, uint16_t event_size)
 
         to_send = (uint32_t)batt_lvl_in_milli_volts;
         nrf_fstorage_write(&fstorage, f_add_current, &to_send, sizeof(to_send), NULL);
-        NRF_LOG_INFO("WRITTEN TO FLASH: %x",to_send);
+//        NRF_LOG_INFO("WRITTEN TO FLASH: %x",to_send);
         while (nrf_fstorage_is_busy(&fstorage))
         {
             #ifdef SOFTDEVICE_PRESENT
@@ -323,25 +325,20 @@ static char_update_handler(void * p_event_data, uint16_t event_size)
 
     }
     else
-    {
-        NRF_LOG_INFO("CONNECTED");
+    {//If device is connected -> First check if there are samples saved in flash and send them, if not, continue as usual
+//        NRF_LOG_INFO("CONNECTED");
         if(f_cnt == 0)
         {//If there are no samples in Flash, sample and send data.
             int32_t temperature = 0;   
             sd_temp_get(&temperature);
             temperature=temperature/4;
             temperature_characteristic_update(&m_c_service, &temperature);
-
             nrf_drv_saadc_sample_convert(0, &adc_result);
-
-            batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result) +
-                                          0;
-            NRF_LOG_INFO("tmp val: [%d]  [%x]", temperature,temperature);
-            NRF_LOG_INFO("adc val: [%d]  [%x]", batt_lvl_in_milli_volts,batt_lvl_in_milli_volts);
-
+            batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result);
+//            NRF_LOG_INFO("tmp val: [%d]  [%x]", temperature,temperature);
+//            NRF_LOG_INFO("adc val: [%d]  [%x]", batt_lvl_in_milli_volts,batt_lvl_in_milli_volts);
             saadc_characteristic_update(&m_c_service, &batt_lvl_in_milli_volts);
-
-            nrf_gpio_pin_toggle(LED_4);
+            nrf_gpio_pin_toggle(LED_4);     //Indicator
         }
         else
         {//Send data from Flash first.
@@ -349,14 +346,14 @@ static char_update_handler(void * p_event_data, uint16_t event_size)
             nrf_fstorage_read(&fstorage, f_add_read, &tmp_fread, 4);
             f_cnt--;
             f_add_read = f_add_read + 4;
-            NRF_LOG_INFO("TMP: %x \n%d samples left in buffer",tmp_fread, f_cnt);
+//            NRF_LOG_INFO("TMP: %x \n%d samples left in buffer",tmp_fread, f_cnt);
             temperature_characteristic_update(&m_flash_serv, &tmp_fread);
             flash_cnt_char_update(&m_flash_serv, &f_cnt);
 
             nrf_fstorage_read(&fstorage, f_add_read, &tmp_fread, 4);
             f_cnt--;
             f_add_read = f_add_read + 4;
-            NRF_LOG_INFO("TMP: %x \n%d samples left in buffer",tmp_fread, f_cnt);
+//            NRF_LOG_INFO("TMP: %x \n%d samples left in buffer",tmp_fread, f_cnt);
             saadc_characteristic_update(&m_flash_serv, &tmp_fread);
             flash_cnt_char_update(&m_flash_serv, &f_cnt);
         }
@@ -457,13 +454,15 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
 
 static void c_serv_write_handler(uint32_t char_val, const os_evt * p_evt)
 {
-//    nrf_gpio_pin_toggle(LED_2);     // LED toggle is working!
+/*    EXAMPLE: changing the advertising interval
+    nrf_gpio_pin_toggle(LED_2);     // LED toggle is working!
       //Implement change of advertising interval
-//      ble_adv_modes_config_t emir;
-//      emir.ble_adv_fast_interval = 300;
-//      ble_advertising_modes_config_set(&m_advertising, &emir);
-//    NRF_LOG_INFO("Recieved val [%d]",char_val);
-
+      ble_adv_modes_config_t emir;
+      emir.ble_adv_fast_interval = 300;
+      ble_advertising_modes_config_set(&m_advertising, &emir);
+    NRF_LOG_INFO("Recieved val [%d]",char_val);
+*/
+    // Changing the sample interval
     ret_code_t err_code;
     err_code = app_timer_stop(m_char_timer_id);
     APP_ERROR_CHECK(err_code); 
@@ -486,12 +485,14 @@ static void services_init(void)
 
     err_code = nrf_ble_qwr_init(&m_qwr, &qwr_init);
     APP_ERROR_CHECK(err_code);
-
+    
+    //Event handler - on write
     ble_os_init_t os_init;
     os_init.event_handler = c_serv_write_handler;
-
+    
+    // 1st custom service
     c_service_init(&m_c_service, &os_init);
-
+    //2nd custom service - sending data from flash
     c_flash_serv_init(&m_flash_serv);
 }
 
@@ -626,8 +627,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         case BLE_GAP_EVT_DISCONNECTED:
             NRF_LOG_INFO("Disconnected.");
             // LED indication will be changed when advertising starts.
-            m_conn_handle = BLE_CONN_HANDLE_INVALID;
-            init_erase = 1;
+            m_conn_handle = BLE_CONN_HANDLE_INVALID;    //E: Set conn handle to invalid state (Used to check if device is connected)
+            init_erase = 1;                             //E: Used to start the initial flash erase
             break;
 
         case BLE_GAP_EVT_CONNECTED:
@@ -918,7 +919,7 @@ static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt)
 //  Dummy handler
     uint32_t f_r;
     nrf_fstorage_read(&fstorage,f_add_current, &f_r,4);
-    NRF_LOG_INFO("-----> READ FROM FLASH: %x\n EVENT NO[%x]",f_r,f_add_current);
+//    NRF_LOG_INFO("-----> READ FROM FLASH: %x\n EVENT NO[%x]",f_r,f_add_current);
     f_add_current = f_add_current + 4;
     if(f_add_current == 0x5e000)
     {
@@ -965,7 +966,7 @@ int main(void)
     }
     uint32_t tmp_32 = 0;
     nrf_fstorage_read(&fstorage, fstorage.start_addr, &tmp_32, 4);
-    NRF_LOG_INFO("FLASH ERASE CHECK: %x",tmp_32);
+    NRF_LOG_INFO("FLASH ERASE CHECK: %x",tmp_32);     //Check if starting address is erased
     f_add_current = fstorage.start_addr;
 
     application_timers_start();
