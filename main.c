@@ -45,6 +45,7 @@
 
 ///////////////////////////////////////
 #include "cust_service.h"
+#include "flash_service.h"
 #include "nrf_drv_saadc.h"
 #include "app_scheduler.h"
 #include "nrf_fstorage.h"
