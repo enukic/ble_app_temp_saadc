@@ -45,7 +45,7 @@
 
 ///////////////////////////////////////
 #include "cust_service.h"
-#include "flash_service.h"
+//#include "flash_service.h"
 #include "nrf_drv_saadc.h"
 #include "app_scheduler.h"
 #include "nrf_fstorage.h"
@@ -89,7 +89,7 @@ BLE_ADVERTISING_DEF(m_advertising);                                             
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                        /**< Handle of the current connection. */
 
 ble_os_t m_c_service;
-ble_os_t m_flash_serv;
+ble_fs_t m_flash_serv;
 
 APP_TIMER_DEF(m_char_timer_id);
 #define CH_TIMER_INTERVAL APP_TIMER_TICKS(2000)

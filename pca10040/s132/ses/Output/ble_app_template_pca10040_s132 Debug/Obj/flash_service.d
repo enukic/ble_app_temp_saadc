@@ -1,11 +1,12 @@
-Output/ble_app_template_pca10040_s132\ Debug/Obj/boards.o: \
- D:\SDK16\components\boards\boards.c D:\SDK16\components\boards\boards.h \
+Output/ble_app_template_pca10040_s132\ Debug/Obj/flash_service.o: \
+ D:\SDK16\examples\ble_peripheral\ble_app_temp_saadc\flash_service.c \
+ C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 4.50/include/stdint.h \
+ C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 4.50/include/string.h \
+ C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 4.50/include/__crossworks.h \
  d:\sdk16\modules\nrfx\hal\nrf_gpio.h d:\sdk16\modules\nrfx\nrfx.h \
  d:\sdk16\integration\nrfx\nrfx_config.h ../config/sdk_config.h \
  d:\sdk16\modules\nrfx\drivers\nrfx_common.h \
- C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 4.50/include/stdint.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 4.50/include/stddef.h \
- C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 4.50/include/__crossworks.h \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 4.50/include/stdbool.h \
  d:\sdk16\modules\nrfx\mdk\nrf.h d:\sdk16\modules\nrfx\mdk\nrf52.h \
  d:\sdk16\components\toolchain\cmsis\include\core_cm4.h \
@@ -50,4 +51,37 @@ Output/ble_app_template_pca10040_s132\ Debug/Obj/boards.o: \
  d:\sdk16\components\libraries\util\sdk_resources.h \
  d:\sdk16\components\softdevice\s132\headers\nrf_sd_def.h \
  d:\sdk16\modules\nrfx\drivers\nrfx_errors.h \
- D:\SDK16\components\boards\pca10040.h
+ D:\SDK16\examples\ble_peripheral\ble_app_temp_saadc\cust_service.h \
+ d:\sdk16\components\softdevice\s132\headers\ble.h \
+ d:\sdk16\components\softdevice\s132\headers\ble_err.h \
+ d:\sdk16\components\softdevice\s132\headers\ble_gap.h \
+ d:\sdk16\components\softdevice\s132\headers\ble_hci.h \
+ d:\sdk16\components\softdevice\s132\headers\ble_ranges.h \
+ d:\sdk16\components\softdevice\s132\headers\ble_types.h \
+ d:\sdk16\components\softdevice\s132\headers\ble_l2cap.h \
+ d:\sdk16\components\softdevice\s132\headers\ble_gatt.h \
+ d:\sdk16\components\softdevice\s132\headers\ble_gattc.h \
+ d:\sdk16\components\softdevice\s132\headers\ble_gatts.h \
+ d:\sdk16\components\ble\common\ble_srv_common.h \
+ d:\sdk16\components\softdevice\s132\headers\ble_types.h \
+ d:\sdk16\components\softdevice\s132\headers\ble_gap.h \
+ d:\sdk16\components\softdevice\s132\headers\ble_gatt.h \
+ d:\sdk16\components\libraries\util\app_error.h \
+ d:\sdk16\components\libraries\log\nrf_log.h \
+ d:\sdk16\components\libraries\util\sdk_common.h \
+ d:\sdk16\components\libraries\util\sdk_os.h \
+ d:\sdk16\components\libraries\util\app_util.h \
+ d:\sdk16\components\libraries\util\sdk_macros.h \
+ d:\sdk16\components\libraries\experimental_section_vars\nrf_section.h \
+ d:\sdk16\components\libraries\strerror\nrf_strerror.h \
+ d:\sdk16\components\libraries\log\src\nrf_log_internal.h \
+ d:\sdk16\components\libraries\log\nrf_log_instance.h \
+ d:\sdk16\components\libraries\log\nrf_log_types.h \
+ d:\sdk16\components\libraries\log\nrf_log_types.h \
+ d:\sdk16\components\libraries\log\nrf_log_ctrl.h \
+ d:\sdk16\components\libraries\log\src\nrf_log_ctrl_internal.h \
+ d:\sdk16\components\libraries\log\nrf_log_backend_interface.h \
+ d:\sdk16\components\libraries\memobj\nrf_memobj.h \
+ C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 4.50/include/stdlib.h \
+ d:\sdk16\components\libraries\balloc\nrf_balloc.h \
+ d:\sdk16\components\libraries\log\nrf_log_default_backends.h

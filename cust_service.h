@@ -36,6 +36,7 @@ typedef struct
 } os_evt;
 
 typedef struct ble_os_s ble_os_t;
+typedef struct ble_flash_s ble_fs_t;
 
 typedef void (*ble_os_event_handler_t) (uint32_t char_val, const os_evt * p_evt);
 
@@ -56,6 +57,17 @@ struct ble_os_s
     ble_gatts_char_handles_t    char_handles;
     ble_gatts_char_handles_t    char_handles2;
     ble_gatts_char_handles_t    char_handles3;
+    ble_os_event_handler_t      event_handler;
+};
+
+struct ble_flash_s
+{
+    uint16_t                    conn_handle;    /**< Handle of the current connection (as provided by the BLE stack, is BLE_CONN_HANDLE_INVALID if not in a connection).*/
+    uint16_t                    service_handle; /**< Handle of Our Service (as provided by the BLE stack). */
+    // OUR_JOB: Step 2.D, Add handles for the characteristic attributes to our struct
+    ble_gatts_char_handles_t    char_temp_handle;
+    ble_gatts_char_handles_t    char_adc_handle;
+    ble_gatts_char_handles_t    char_cnt_handle;
     ble_os_event_handler_t      event_handler;
 };
 
@@ -80,7 +92,7 @@ void ble_c_service_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context);
  */
 void c_service_init(ble_os_t * p_our_service, ble_os_init_t * p_srv_init);
 
-void c_flash_serv_init(ble_os_t * p_our_service);
+void c_flash_serv_init(ble_fs_t * p_our_service);
 
 /**@brief Function for updating and sending new characteristic values
  *
@@ -94,6 +106,6 @@ void temperature_characteristic_update(ble_os_t *p_our_service, int32_t *tempera
 
 void saadc_characteristic_update(ble_os_t *p_our_service, int16_t *temperature_value);
 
-void flash_cnt_char_update(ble_os_t *p_our_service, uint32_t *cnt_val);
+void flash_cnt_char_update(ble_fs_t *p_our_service, uint32_t *cnt_val);
 
 #endif  /* _ CUST_SERVICE_H__ */

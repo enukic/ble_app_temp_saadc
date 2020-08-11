@@ -1,6 +1,6 @@
 
-#ifndef CUST_SERVICE_H__
-#define CUST_SERVICE_H__
+#ifndef FLASH_SERVICE_H__
+#define FLASH_SERVICE_H__
 
 #include <stdint.h>
 #include "ble.h"
@@ -8,13 +8,13 @@
 
 // FROM_SERVICE_TUTORIAL: Defining 16-bit service and 128-bit base UUIDs
 #define BLE_UUID_OUR_BASE_UUID              {{0x23, 0xD1, 0x13, 0xEF, 0x5F, 0x78, 0x23, 0x15, 0xDE, 0xEF, 0x12, 0x12, 0x00, 0x00, 0x00, 0x00}} // 128-bit base UUID
-#define BLE_UUID_OUR_SERVICE_UUID                0xF00D // Just a random, but recognizable value
+//#define BLE_UUID_OUR_SERVICE_UUID                0xF00D // Just a random, but recognizable value
 #define BLE_UUID_FLS_SERVICE_UUID                0xABCD
 
 // ALREADY_DONE_FOR_YOU: Defining 16-bit characteristic UUID
-#define BLE_UUID_OUR_CHARACTERISTC_UUID          0xBEEF // Just a random, but recognizable value
-#define BLE_UUID_OUR_CHARACTERISTC_UUID2         0xB00B // Just a random, but recognizable value
-#define BLE_UUID_OUR_CHARACTERISTC_UUID3         0xBABA // Just a random, but recognizable value
+//#define BLE_UUID_OUR_CHARACTERISTC_UUID          0xBEEF // Just a random, but recognizable value
+//#define BLE_UUID_OUR_CHARACTERISTC_UUID2         0xB00B // Just a random, but recognizable value
+//#define BLE_UUID_OUR_CHARACTERISTC_UUID3         0xBABA // Just a random, but recognizable value
 
 #define BLE_UUID_FLASH_CHARACTERISTC_UUID          0x0007 // Just a random, but recognizable value
 #define BLE_UUID_FLASH_CHARACTERISTC_UUID2         0xACAB // Just a random, but recognizable value
@@ -72,13 +72,13 @@ struct ble_os_s
  * @param[in]   p_our_service       Our Service structure.
  * @param[in]   p_ble_evt  Event received from the BLE stack.
  */
-void ble_c_service_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context);
+void ble_f_service_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context);
 
 /**@brief Function for initializing our new service.
  *
  * @param[in]   p_our_service       Pointer to Our Service structure.
  */
-void c_service_init(ble_os_t * p_our_service, ble_os_init_t * p_srv_init);
+//void c_service_init(ble_os_t * p_our_service, ble_os_init_t * p_srv_init);
 
 void c_flash_serv_init(ble_os_t * p_our_service);
 
@@ -89,11 +89,11 @@ void c_flash_serv_init(ble_os_t * p_our_service);
  * @param[in]   p_our_service                     Our Service structure.
  * @param[in]   characteristic_value     New characteristic value.
  */
-void temperature_characteristic_update(ble_os_t *p_our_service, int32_t *temperature_value);
-
-
-void saadc_characteristic_update(ble_os_t *p_our_service, int16_t *temperature_value);
+//void temperature_characteristic_update(ble_os_t *p_our_service, int32_t *temperature_value);
+//
+//
+//void saadc_characteristic_update(ble_os_t *p_our_service, int16_t *temperature_value);
 
 void flash_cnt_char_update(ble_os_t *p_our_service, uint32_t *cnt_val);
 
-#endif  /* _ CUST_SERVICE_H__ */
+#endif  /* _ FLASH_SERVICE_H__ */

@@ -49,6 +49,7 @@
 "Output/ble_app_template_pca10040_s132 Debug/Obj/bsp_btn_ble.o"
 "Output/ble_app_template_pca10040_s132 Debug/Obj/main.o"
 "Output/ble_app_template_pca10040_s132 Debug/Obj/cust_service.o"
+"Output/ble_app_template_pca10040_s132 Debug/Obj/flash_service.o"
 "Output/ble_app_template_pca10040_s132 Debug/Obj/SEGGER_RTT.o"
 "Output/ble_app_template_pca10040_s132 Debug/Obj/SEGGER_RTT_Syscalls_SES.o"
 "Output/ble_app_template_pca10040_s132 Debug/Obj/SEGGER_RTT_printf.o"
