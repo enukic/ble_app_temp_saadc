@@ -24,7 +24,8 @@
 typedef enum 
 {
     OS_EVT_TEMPERATURE_NOTIF_ENABLE,
-    OS_EVT_SAADC_NOTIF_ENABLE
+    OS_EVT_SAADC_NOTIF_ENABLE,
+    OS_EVT_WRITE
 } os_evt_type;
 
 typedef struct
@@ -54,9 +55,9 @@ struct ble_os_s
     uint16_t                    conn_handle;    /**< Handle of the current connection (as provided by the BLE stack, is BLE_CONN_HANDLE_INVALID if not in a connection).*/
     uint16_t                    service_handle; /**< Handle of Our Service (as provided by the BLE stack). */
     // OUR_JOB: Step 2.D, Add handles for the characteristic attributes to our struct
-    ble_gatts_char_handles_t    char_handles;
-    ble_gatts_char_handles_t    char_handles2;
-    ble_gatts_char_handles_t    char_handles3;
+    ble_gatts_char_handles_t    os_temp_handle;
+    ble_gatts_char_handles_t    os_adc_handle;
+    ble_gatts_char_handles_t    os_interval_handle;
     ble_os_event_handler_t      event_handler;
 };
 
@@ -68,7 +69,7 @@ struct ble_flash_s
     ble_gatts_char_handles_t    char_temp_handle;
     ble_gatts_char_handles_t    char_adc_handle;
     ble_gatts_char_handles_t    char_cnt_handle;
-    ble_os_event_handler_t      event_handler;
+//    ble_os_event_handler_t      event_handler;
 };
 
 
@@ -105,6 +106,8 @@ void temperature_characteristic_update(ble_os_t *p_our_service, int32_t *tempera
 
 
 void saadc_characteristic_update(ble_os_t *p_our_service, int16_t *temperature_value);
+
+void download_char_update(ble_fs_t *p_our_service, uint32_t *dataEntry);
 
 void flash_cnt_char_update(ble_fs_t *p_our_service, uint32_t *cnt_val);
 

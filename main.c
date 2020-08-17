@@ -1,17 +1,3 @@
-/** @file
- *
- * @defgroup ble_sdk_app_template_main main.c
- * @{
- * @ingroup ble_sdk_app_template
- * @brief Template project main file.
- *
- * This file contains a template for creating a new application. It has the code necessary to wakeup
- * from button, advertise, get a connection restart advertising on disconnect and if no new
- * connection created go back to system-off mode.
- * It can easily be used as a starting point for creating a new application, the comments identified
- * with 'YOUR_JOB' indicates where and how you can customize.
- */
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -30,8 +16,8 @@
 #include "nrf_sdh_ble.h"
 #include "app_timer.h"
 #include "fds.h"
-#include "peer_manager.h"
-#include "peer_manager_handler.h"
+//#include "peer_manager.h"
+//#include "peer_manager_handler.h"
 #include "bsp_btn_ble.h"
 #include "sensorsim.h"
 #include "ble_conn_state.h"
@@ -50,11 +36,11 @@
 #include "app_scheduler.h"
 #include "nrf_fstorage.h"
 #include "nrf_fstorage_sd.h"
+#include "flash_storage.h"
 
 
 
 #define DEVICE_NAME                     "Nordic_Template"                       /**< Name of device. Will be included in the advertising data. */
-//#define MANUFACTURER_NAME               "NordicSemiconductor"                   /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                600                                     /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
 
 #define APP_ADV_DURATION                18000                                   /**< The advertising duration (180 seconds) in units of 10 milliseconds. */
@@ -92,7 +78,12 @@ ble_os_t m_c_service;
 ble_fs_t m_flash_serv;
 
 APP_TIMER_DEF(m_char_timer_id);
-#define CH_TIMER_INTERVAL APP_TIMER_TICKS(2000)
+APP_TIMER_DEF(m_timestamp_timer);
+#define     CH_TIMER_INTERVAL APP_TIMER_TICKS(2000)
+uint32_t    m_timestamp=0;
+uint8_t     m_index=0;
+dataEntry_t data;
+uint32_t    m_logIdx;
 
 //#define SCHED_MAX_EVENT_DATA_SIZE       MAX(sizeof(nrf_drv_gpiote_pin_t), APP_TIMER_SCHED_EVENT_DATA_SIZE)
 #define SCHED_MAX_EVENT_DATA_SIZE       APP_TIMER_SCHED_EVENT_DATA_SIZE
@@ -107,37 +98,15 @@ APP_TIMER_DEF(m_char_timer_id);
 nrf_saadc_value_t adc_result;
 uint16_t          batt_lvl_in_milli_volts;
 
-
-static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt);
-
 /*
     f_cnt           is used to count samples written to flash. It is decremented every time 1 sample is sent via notifications
     eventhough it's still in flash (Flash is erased when f_cnt reaches zero or device is disconnected)
     f_add_current   is a pointer to the next flash addres to be written to (it is incrementded by 4 every time event occurs
     f_add_read      is a pointer to the next flash addres to be read (same as f_add_current)
-
+    speed_up        flag which is used to change transmission interval to 100ms while downloading data, and reseting it to 2s when returning to standard mode
 */
 uint32_t f_cnt = 0, f_add_current = 0x4e000, f_add_read = 0x4e000;
-uint8_t init_erase = 0;
-
-
-NRF_FSTORAGE_DEF(nrf_fstorage_t fstorage) =
-{
-    /* Set a handler for fstorage events. */
-    .evt_handler = fstorage_evt_handler,
-
-    /* These below are the boundaries of the flash space assigned to this instance of fstorage.
-     * You must set these manually, even at runtime, before nrf_fstorage_init() is called.
-     * The function nrf5_flash_end_addr_get() can be used to retrieve the last address on the
-     * last page of flash available to write data. */
-    .start_addr = 0x4e000,
-    .end_addr   = 0x4ffff,
-    // Reminder: A page is 0x1000 bytes (4096 bytes)
-};
-
-
-
-
+uint8_t init_erase = 0, speed_up = 1;
 
 // YOUR_JOB: Use UUIDs for service(s) used in your application.
 static ble_uuid_t m_adv_uuids[] =                                               /**< Universally unique service identifiers. */
@@ -167,105 +136,6 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 }
 
 
-/**@brief Function for handling Peer Manager events.
- *
- * @param[in] p_evt  Peer Manager event.
- */
-static void pm_evt_handler(pm_evt_t const * p_evt)
-{
-    ret_code_t err_code;
-
-    switch (p_evt->evt_id)
-    {
-        case PM_EVT_BONDED_PEER_CONNECTED:
-        {
-            NRF_LOG_INFO("Connected to a previously bonded device.");
-        } break;
-
-        case PM_EVT_CONN_SEC_SUCCEEDED:
-        {
-            NRF_LOG_INFO("Connection secured: role: %d, conn_handle: 0x%x, procedure: %d.",
-                         ble_conn_state_role(p_evt->conn_handle),
-                         p_evt->conn_handle,
-                         p_evt->params.conn_sec_succeeded.procedure);
-        } break;
-
-        case PM_EVT_CONN_SEC_FAILED:
-        {
-            /* Often, when securing fails, it shouldn't be restarted, for security reasons.
-             * Other times, it can be restarted directly.
-             * Sometimes it can be restarted, but only after changing some Security Parameters.
-             * Sometimes, it cannot be restarted until the link is disconnected and reconnected.
-             * Sometimes it is impossible, to secure the link, or the peer device does not support it.
-             * How to handle this error is highly application dependent. */
-        } break;
-
-        case PM_EVT_CONN_SEC_CONFIG_REQ:
-        {
-            // Reject pairing request from an already bonded peer.
-            pm_conn_sec_config_t conn_sec_config = {.allow_repairing = false};
-            pm_conn_sec_config_reply(p_evt->conn_handle, &conn_sec_config);
-        } break;
-
-        case PM_EVT_STORAGE_FULL:
-        {
-            // Run garbage collection on the flash.
-            err_code = fds_gc();
-            if (err_code == FDS_ERR_NO_SPACE_IN_QUEUES)
-            {
-                // Retry.
-            }
-            else
-            {
-                APP_ERROR_CHECK(err_code);
-            }
-        } break;
-
-        case PM_EVT_PEERS_DELETE_SUCCEEDED:
-        {
-            advertising_start(false);
-        } break;
-
-        case PM_EVT_PEER_DATA_UPDATE_FAILED:
-        {
-            // Assert.
-            APP_ERROR_CHECK(p_evt->params.peer_data_update_failed.error);
-        } break;
-
-        case PM_EVT_PEER_DELETE_FAILED:
-        {
-            // Assert.
-            APP_ERROR_CHECK(p_evt->params.peer_delete_failed.error);
-        } break;
-
-        case PM_EVT_PEERS_DELETE_FAILED:
-        {
-            // Assert.
-            APP_ERROR_CHECK(p_evt->params.peers_delete_failed_evt.error);
-        } break;
-
-        case PM_EVT_ERROR_UNEXPECTED:
-        {
-            // Assert.
-            APP_ERROR_CHECK(p_evt->params.error_unexpected.error);
-        } break;
-
-        case PM_EVT_CONN_SEC_START:
-        case PM_EVT_PEER_DATA_UPDATE_SUCCEEDED:
-        case PM_EVT_PEER_DELETE_SUCCEEDED:
-        case PM_EVT_LOCAL_DB_CACHE_APPLIED:
-        case PM_EVT_LOCAL_DB_CACHE_APPLY_FAILED:
-            // This can happen when the local DB has changed.
-        case PM_EVT_SERVICE_CHANGED_IND_SENT:
-        case PM_EVT_SERVICE_CHANGED_IND_CONFIRMED:
-        default:
-            break;
-    }
-}
-
-
-
-
 static char_update_handler(void * p_event_data, uint16_t event_size)
 {
 
@@ -273,61 +143,39 @@ static char_update_handler(void * p_event_data, uint16_t event_size)
     {// If device is not connected -> Write samples to flash
         if(init_erase == 1)
         {// Initial flash erase occurs when device is disconnected or when nRF is started for the first time
-            nrf_fstorage_erase(&fstorage, fstorage.start_addr, 2, NULL);
-            while (nrf_fstorage_is_busy(&fstorage))
-            {
-                #ifdef SOFTDEVICE_PRESENT
-                    (void) sd_app_evt_wait();
-                #else
-                    __WFE();
-                #endif
-            }
+            
+            FS_Erase(0x4e000, 2);
             init_erase      = 0;
             f_cnt           = 0;
-            f_add_current   = fstorage.start_addr;
-            f_add_read      = fstorage.start_addr;
+            f_add_current   = 0x4e000;
+            f_add_read      = 0x4e000;
         }
-//        NRF_LOG_INFO("NOT CONNECTED");
-        
+        //TEMP sensor sampling
         int32_t temperature = 0;   
         sd_temp_get(&temperature);
         temperature=temperature/4;
+        //SAADC sensor sampling
         nrf_drv_saadc_sample_convert(0, &adc_result);
         batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result);
-//        NRF_LOG_INFO("tmp val: [%d]  [%x]", temperature,temperature);
-//        NRF_LOG_INFO("adc val: [%d]  [%x]", batt_lvl_in_milli_volts,batt_lvl_in_milli_volts);
 
-        uint32_t to_send = (uint32_t)temperature;
-        nrf_fstorage_write(&fstorage, f_add_current, &to_send, sizeof(to_send), NULL);
-//        NRF_LOG_INFO("WRITTEN TO FLASH: %x",to_send);
-        while (nrf_fstorage_is_busy(&fstorage))
-        {
-            #ifdef SOFTDEVICE_PRESENT
-                (void) sd_app_evt_wait();
-            #else
-                __WFE();
-            #endif
-        }
         f_cnt++;
-
-        to_send = (uint32_t)batt_lvl_in_milli_volts;
-        nrf_fstorage_write(&fstorage, f_add_current, &to_send, sizeof(to_send), NULL);
-//        NRF_LOG_INFO("WRITTEN TO FLASH: %x",to_send);
-        while (nrf_fstorage_is_busy(&fstorage))
-        {
-            #ifdef SOFTDEVICE_PRESENT
-                (void) sd_app_evt_wait();
-            #else
-                __WFE();
-            #endif
-        }
-        f_cnt++;
+        m_index++;
+        //Creating data entry
+        data.timestamp  = m_timestamp;
+        data.adc        = (uint16_t)batt_lvl_in_milli_volts;
+        data.temperature= (uint8_t)temperature;
+        data.index      = m_index;
+        
+        FS_Write(f_add_current, (uint32_t *)&data, sizeof(dataEntry_t));
+        f_add_current   = f_add_current+8;
+        //If current address exceeds address limit
+        if(f_add_current >= 0x4ffff)
+        {  init_erase = 1;}
 
 
     }
     else
     {//If device is connected -> First check if there are samples saved in flash and send them, if not, continue as usual
-//        NRF_LOG_INFO("CONNECTED");
         if(f_cnt == 0)
         {//If there are no samples in Flash, sample and send data.
             int32_t temperature = 0;   
@@ -336,27 +184,53 @@ static char_update_handler(void * p_event_data, uint16_t event_size)
             temperature_characteristic_update(&m_c_service, &temperature);
             nrf_drv_saadc_sample_convert(0, &adc_result);
             batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result);
-//            NRF_LOG_INFO("tmp val: [%d]  [%x]", temperature,temperature);
-//            NRF_LOG_INFO("adc val: [%d]  [%x]", batt_lvl_in_milli_volts,batt_lvl_in_milli_volts);
             saadc_characteristic_update(&m_c_service, &batt_lvl_in_milli_volts);
             nrf_gpio_pin_toggle(LED_4);     //Indicator
         }
         else
         {//Send data from Flash first.
-            uint32_t tmp_fread;
-            nrf_fstorage_read(&fstorage, f_add_read, &tmp_fread, 4);
-            f_cnt--;
-            f_add_read = f_add_read + 4;
-//            NRF_LOG_INFO("TMP: %x \n%d samples left in buffer",tmp_fread, f_cnt);
-            temperature_characteristic_update(&m_flash_serv, &tmp_fread);
-            flash_cnt_char_update(&m_flash_serv, &f_cnt);
 
-            nrf_fstorage_read(&fstorage, f_add_read, &tmp_fread, 4);
+            if(speed_up == 1)
+            {//Setting interrupt interval to 100ms for faster data transfer
+                ret_code_t err_code;
+                err_code = app_timer_stop(m_char_timer_id);
+                APP_ERROR_CHECK(err_code); 
+                err_code = app_timer_start(m_char_timer_id, APP_TIMER_TICKS(100), NULL);
+                APP_ERROR_CHECK(err_code);
+                speed_up = 0;
+            }
+            dataEntry_t *p_dataEntry  = (dataEntry_t *)(f_add_read);
+            
             f_cnt--;
-            f_add_read = f_add_read + 4;
-//            NRF_LOG_INFO("TMP: %x \n%d samples left in buffer",tmp_fread, f_cnt);
-            saadc_characteristic_update(&m_flash_serv, &tmp_fread);
+            //To make sure f_cnt goes "below" 0
+            if(f_cnt > 0)
+            {
+                f_cnt--;
+            }
+
+            f_add_read = f_add_read + 16;
+
             flash_cnt_char_update(&m_flash_serv, &f_cnt);
+            download_char_update(&m_flash_serv, p_dataEntry);
+
+            if(f_cnt == 0)
+              {//If all samples are transmitted -> Erase flash and reset interrupt interval
+//                for(uint32_t mycnt = FS_START_ADDR; mycnt <= f_add_read; mycnt=mycnt+8)
+//                {//Disp whole flash
+//                    NRF_LOG_INFO("%x",*(uint32_t *)(mycnt +4));
+//                }
+                FS_Erase(FS_START_ADDR, 2);
+                f_add_current   = FS_START_ADDR;
+                f_add_read      = FS_START_ADDR;
+
+                ret_code_t err_code;
+                err_code = app_timer_stop(m_char_timer_id);
+                APP_ERROR_CHECK(err_code); 
+                err_code = app_timer_start(m_char_timer_id, APP_TIMER_TICKS(2000), NULL);
+                APP_ERROR_CHECK(err_code);
+                speed_up = 1;
+              }
+
         }
         
     }
@@ -372,6 +246,20 @@ static void timer_timeout_handler(void * p_context)
 }
 
 
+static timestamp_handler(void * p_event_data, uint16_t event_size)
+{
+    m_timestamp++;
+//    NRF_LOG_INFO("[%d]", m_timestamp);
+}
+
+
+static void timestamp_timer_handler(void * p_context)
+{
+    
+    app_sched_event_put(NULL, 0, timestamp_handler);
+}
+
+
 /**@brief Function for the Timer initialization.
  *
  * @details Initializes the timer module. This creates and starts application timers.
@@ -382,14 +270,11 @@ static void timers_init(void)
     ret_code_t err_code = app_timer_init();
     APP_ERROR_CHECK(err_code);
 
-    // Create timers.
 
-    /* YOUR_JOB: Create any timers to be used by the application.
-                 Below is an example of how to create a timer.
-                 For every new timer needed, increase the value of the macro APP_TIMER_MAX_TIMERS by
-                 one.
-       ret_code_t err_code;*/
      err_code = app_timer_create(&m_char_timer_id, APP_TIMER_MODE_REPEATED, timer_timeout_handler);
+     APP_ERROR_CHECK(err_code); 
+
+     err_code = app_timer_create(&m_timestamp_timer, APP_TIMER_MODE_REPEATED, timestamp_timer_handler);
      APP_ERROR_CHECK(err_code); 
 }
 
@@ -412,9 +297,6 @@ static void gap_params_init(void)
                                           strlen(DEVICE_NAME));
     APP_ERROR_CHECK(err_code);
 
-    /* YOUR_JOB: Use an appearance value matching the application's use case.
-       err_code = sd_ble_gap_appearance_set(BLE_APPEARANCE_);
-       APP_ERROR_CHECK(err_code); */
 
     memset(&gap_conn_params, 0, sizeof(gap_conn_params));
 
@@ -463,14 +345,23 @@ static void c_serv_write_handler(uint32_t char_val, const os_evt * p_evt)
       ble_advertising_modes_config_set(&m_advertising, &emir);
     NRF_LOG_INFO("Recieved val [%d]",char_val);
 */
-    // Changing the sample interval
-    ret_code_t err_code;
-    err_code = app_timer_stop(m_char_timer_id);
-    APP_ERROR_CHECK(err_code); 
-    err_code = app_timer_start(m_char_timer_id, APP_TIMER_TICKS(char_val), NULL);
-    APP_ERROR_CHECK(err_code); 
+    
+    switch (p_evt->event_type)
+    {
+        case OS_EVT_WRITE:
+        {// Changing the sample interval
+            ret_code_t err_code;
+            err_code = app_timer_stop(m_char_timer_id);
+            APP_ERROR_CHECK(err_code); 
+            err_code = app_timer_start(m_char_timer_id, APP_TIMER_TICKS(char_val), NULL);
+            APP_ERROR_CHECK(err_code); 
+        }break;
 
+        default:
 
+        break;
+
+    }
     
 }
 
@@ -562,6 +453,9 @@ static void application_timers_start(void)
        err_code = app_timer_start(m_char_timer_id, CH_TIMER_INTERVAL, NULL);
        APP_ERROR_CHECK(err_code); 
 
+       err_code = app_timer_start(m_timestamp_timer, APP_TIMER_TICKS(1000), NULL);
+       APP_ERROR_CHECK(err_code); 
+
 }
 
 
@@ -629,7 +523,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             NRF_LOG_INFO("Disconnected.");
             // LED indication will be changed when advertising starts.
             m_conn_handle = BLE_CONN_HANDLE_INVALID;    //E: Set conn handle to invalid state (Used to check if device is connected)
-            init_erase = 1;                             //E: Used to start the initial flash erase
+//            init_erase = 1;                             //E: Used to start the initial flash erase
             break;
 
         case BLE_GAP_EVT_CONNECTED:
@@ -705,51 +599,6 @@ static void ble_stack_init(void)
 }
 
 
-/**@brief Function for the Peer Manager initialization.
- */
-static void peer_manager_init(void)
-{
-    ble_gap_sec_params_t sec_param;
-    ret_code_t           err_code;
-
-    err_code = pm_init();
-    APP_ERROR_CHECK(err_code);
-
-    memset(&sec_param, 0, sizeof(ble_gap_sec_params_t));
-
-    // Security parameters to be used for all security procedures.
-    sec_param.bond           = SEC_PARAM_BOND;
-    sec_param.mitm           = SEC_PARAM_MITM;
-    sec_param.lesc           = SEC_PARAM_LESC;
-    sec_param.keypress       = SEC_PARAM_KEYPRESS;
-    sec_param.io_caps        = SEC_PARAM_IO_CAPABILITIES;
-    sec_param.oob            = SEC_PARAM_OOB;
-    sec_param.min_key_size   = SEC_PARAM_MIN_KEY_SIZE;
-    sec_param.max_key_size   = SEC_PARAM_MAX_KEY_SIZE;
-    sec_param.kdist_own.enc  = 1;
-    sec_param.kdist_own.id   = 1;
-    sec_param.kdist_peer.enc = 1;
-    sec_param.kdist_peer.id  = 1;
-
-    err_code = pm_sec_params_set(&sec_param);
-    APP_ERROR_CHECK(err_code);
-
-    err_code = pm_register(pm_evt_handler);
-    APP_ERROR_CHECK(err_code);
-}
-
-
-/**@brief Clear bond information from persistent storage.
- */
-static void delete_bonds(void)
-{
-    ret_code_t err_code;
-
-    NRF_LOG_INFO("Erase bonds!");
-
-    err_code = pm_peers_delete();
-    APP_ERROR_CHECK(err_code);
-}
 
 
 /**@brief Function for handling events from the BSP module.
@@ -882,7 +731,7 @@ static void advertising_start(bool erase_bonds)
 {
     if (erase_bonds == true)
     {
-        delete_bonds();
+//        delete_bonds();
         // Advertising is started by PM_EVT_PEERS_DELETED_SUCEEDED event
     }
     else
@@ -915,23 +764,6 @@ void saadc_init(void)
 
 }
 
-static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt)
-{
-//  Dummy handler
-    uint32_t f_r;
-    nrf_fstorage_read(&fstorage,f_add_current, &f_r,4);
-//    NRF_LOG_INFO("-----> READ FROM FLASH: %x\n EVENT NO[%x]",f_r,f_add_current);
-    f_add_current = f_add_current + 4;
-    if(f_add_current == 0x5e000)
-    {
-        f_add_current = 0x4e000;  //Redundant - this is done in init_erase part
-        init_erase    = 1;        //Erase 2 pages, starting 0x4e000
-    }
-}
-
-
-/**@brief Function for application main entry.
- */
 int main(void)
 {
     bool erase_bonds;
@@ -949,27 +781,27 @@ int main(void)
     advertising_init();
     services_init();
     conn_params_init();
-    peer_manager_init();
     saadc_init();
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE,SCHED_QUEUE_SIZE);
-    nrf_fstorage_init(&fstorage, p_fs_api, NULL);
+    FS_Init();
+    //Recover number of entries in flash
+    f_add_current = FS_START_ADDR + m_logIdx*8;
+    if(m_logIdx == 0)
+    {  
+        f_cnt=0;
+    }
+    else
+    {  
+        f_cnt= m_logIdx-1;
+    }
+
+    NRF_LOG_INFO("-> Displaying latest flash entries on startup:");
+    NRF_LOG_INFO("-> [%x %x] at ADD [%x]",*(uint32_t *)(f_add_current-8),*(uint32_t *)(f_add_current-4),(f_add_current-8));
+    NRF_LOG_INFO("-> [%x %x] at ADD [%x]",*(uint32_t *)(f_add_current-16),*(uint32_t *)(f_add_current-12),(f_add_current-16));
+    NRF_LOG_INFO("-> [%x %x] at ADD [%x]",*(uint32_t *)(f_add_current-24),*(uint32_t *)(f_add_current-20),(f_add_current-24));
 
     // Start execution.
     NRF_LOG_INFO("Template example started.");
-    nrf_fstorage_erase(&fstorage, fstorage.start_addr, 2, NULL);
-    while (nrf_fstorage_is_busy(&fstorage))
-    {
-        #ifdef SOFTDEVICE_PRESENT
-            (void) sd_app_evt_wait();
-        #else
-            __WFE();
-        #endif
-    }
-    uint32_t tmp_32 = 0;
-    nrf_fstorage_read(&fstorage, fstorage.start_addr, &tmp_32, 4);
-    NRF_LOG_INFO("FLASH ERASE CHECK: %x",tmp_32);     //Check if starting address is erased
-    f_add_current = fstorage.start_addr;
-
     application_timers_start();
 
     advertising_start(erase_bonds);
