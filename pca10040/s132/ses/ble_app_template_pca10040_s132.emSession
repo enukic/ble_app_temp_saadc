@@ -62,12 +62,13 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="81" useTextEdit="1" useBinaryEdit="0" left="0" path="myfiles/flash_storage.c" selected="0" top="70" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="81" useTextEdit="1" useBinaryEdit="0" left="0" path="myfiles/flash_storage.c" selected="0" top="88" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="9" useTextEdit="1" useBinaryEdit="0" left="0" path="myfiles/flash_storage.h" selected="0" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="229" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../flash_service.c" selected="0" top="222" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="767" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="478" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="35" y="165" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../flash_service.c" selected="1" top="150" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="767" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="0" top="532" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="69" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../cust_service.h" selected="0" top="0" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="276" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../cust_service.c" selected="0" top="234" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="159" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/softdevice/s132/headers/ble_gatts.h" selected="0" top="147" codecName="Default"/>
  </Files>
- <ARMCrossStudioWindow activeProject="ble_app_template_pca10040_s132" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="C:/SDK16/modules/nrfx/mdk/ses_startup_nrf52.s&#xa;D:/SDK16/modules/nrfx/mdk/ses_startup_nrf52.s&#xa;D:/SDK16/components/ble/ble_advertising/ble_advertising.c&#xa;C:/SDK16/components/ble/ble_advertising/ble_advertising.c" fileDialogInitialDirectory="C:/SDK16/examples/ble_peripheral/ble_app_temp_saadc/pca10040/s132/ses/myfiles" debugSearchPath="" autoConnectCapabilities="3711"/>
+ <ARMCrossStudioWindow activeProject="ble_app_template_pca10040_s132" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="C:/SDK16/modules/nrfx/mdk/ses_startup_nrf52.s&#xa;D:/SDK16/modules/nrfx/mdk/ses_startup_nrf52.s&#xa;D:/SDK16/components/ble/ble_advertising/ble_advertising.c&#xa;C:/SDK16/components/ble/ble_advertising/ble_advertising.c" fileDialogInitialDirectory="C:/SDK16/examples/ble_peripheral/ble_app_temp_saadc/pca10040/s132/ses/myfiles" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>
