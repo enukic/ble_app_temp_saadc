@@ -246,17 +246,18 @@ static void timer_timeout_handler(void * p_context)
 }
 
 
-static timestamp_handler(void * p_event_data, uint16_t event_size)
-{
-    m_timestamp++;
-//    NRF_LOG_INFO("[%d]", m_timestamp);
-}
+//static timestamp_handler(void * p_event_data, uint16_t event_size)
+//{
+//    m_timestamp++;
+////    NRF_LOG_INFO("[%d]", m_timestamp);
+//}
 
 
 static void timestamp_timer_handler(void * p_context)
 {
     
-    app_sched_event_put(NULL, 0, timestamp_handler);
+//    app_sched_event_put(NULL, 0, timestamp_handler);
+    m_timestamp++;
 }
 
 
