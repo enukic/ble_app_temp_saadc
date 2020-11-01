@@ -79,7 +79,7 @@ ble_fs_t m_flash_serv;
 
 APP_TIMER_DEF(m_char_timer_id);
 APP_TIMER_DEF(m_timestamp_timer);
-#define     CH_TIMER_INTERVAL APP_TIMER_TICKS(2000)
+#define     CH_TIMER_INTERVAL APP_TIMER_TICKS(200)
 uint32_t    m_timestamp=0;
 uint8_t     m_index=0;
 dataEntry_t data;
@@ -106,7 +106,7 @@ uint16_t          batt_lvl_in_milli_volts;
     speed_up        flag which is used to change transmission interval to 100ms while downloading data, and reseting it to 2s when returning to standard mode
 */
 uint32_t f_cnt = 0, f_add_current = 0x4e000, f_add_read = 0x4e000;
-uint8_t init_erase = 0, speed_up = 1;
+uint8_t init_erase = 0, speed_up = 0;
 
 // YOUR_JOB: Use UUIDs for service(s) used in your application.
 static ble_uuid_t m_adv_uuids[] =                                               /**< Universally unique service identifiers. */
@@ -189,16 +189,16 @@ static char_update_handler(void * p_event_data, uint16_t event_size)
         }
         else
         {//Send data from Flash first.
+            speed_up=1;
 
-            if(speed_up == 1)
-            {//Setting interrupt interval to 100ms for faster data transfer
-                ret_code_t err_code;
-                err_code = app_timer_stop(m_char_timer_id);
-                APP_ERROR_CHECK(err_code); 
-                err_code = app_timer_start(m_char_timer_id, APP_TIMER_TICKS(100), NULL);
-                APP_ERROR_CHECK(err_code);
-                speed_up = 0;
-            }
+        }
+        
+    }
+    
+}
+
+static void download_data()
+{
             dataEntry_t *p_dataEntry  = (dataEntry_t *)(f_add_read);
             
             f_cnt--;
@@ -222,19 +222,9 @@ static char_update_handler(void * p_event_data, uint16_t event_size)
                 FS_Erase(FS_START_ADDR, 2);
                 f_add_current   = FS_START_ADDR;
                 f_add_read      = FS_START_ADDR;
+                speed_up=0;
 
-                ret_code_t err_code;
-                err_code = app_timer_stop(m_char_timer_id);
-                APP_ERROR_CHECK(err_code); 
-                err_code = app_timer_start(m_char_timer_id, APP_TIMER_TICKS(2000), NULL);
-                APP_ERROR_CHECK(err_code);
-                speed_up = 1;
               }
-
-        }
-        
-    }
-    
 }
 
 
@@ -812,6 +802,10 @@ int main(void)
     {
         app_sched_execute();
         idle_state_handle();
+        if(speed_up==1)
+        {
+              download_data();
+        }
     }
 }
 
