@@ -40,7 +40,7 @@
 
 
 
-#define DEVICE_NAME                     "Nordic_Template"                       /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "Quick_Demo"                       /**< Name of device. Will be included in the advertising data. */
 #define APP_ADV_INTERVAL                600                                     /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
 
 #define APP_ADV_DURATION                18000                                   /**< The advertising duration (180 seconds) in units of 10 milliseconds. */
@@ -79,6 +79,7 @@ ble_fs_t m_flash_serv;
 
 APP_TIMER_DEF(m_char_timer_id);
 APP_TIMER_DEF(m_timestamp_timer);
+APP_TIMER_DEF(m_led_timer);
 #define     CH_TIMER_INTERVAL APP_TIMER_TICKS(200)
 uint32_t    m_timestamp=0;
 uint8_t     m_index=0;
@@ -185,7 +186,7 @@ static char_update_handler(void * p_event_data, uint16_t event_size)
             nrf_drv_saadc_sample_convert(0, &adc_result);
             batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result);
             saadc_characteristic_update(&m_c_service, &batt_lvl_in_milli_volts);
-            nrf_gpio_pin_toggle(LED_4);     //Indicator
+            //nrf_gpio_pin_toggle(LED_4);     //Indicator
         }
         else
         {//Send data from Flash first.
@@ -250,6 +251,12 @@ static void timestamp_timer_handler(void * p_context)
     m_timestamp++;
 }
 
+static void led_timer_handler(void * p_context)
+{
+    
+    nrf_gpio_pin_toggle(LED_4);
+}
+
 
 /**@brief Function for the Timer initialization.
  *
@@ -266,6 +273,9 @@ static void timers_init(void)
      APP_ERROR_CHECK(err_code); 
 
      err_code = app_timer_create(&m_timestamp_timer, APP_TIMER_MODE_REPEATED, timestamp_timer_handler);
+     APP_ERROR_CHECK(err_code); 
+
+     err_code = app_timer_create(&m_led_timer, APP_TIMER_MODE_SINGLE_SHOT, led_timer_handler);
      APP_ERROR_CHECK(err_code); 
 }
 
@@ -342,9 +352,11 @@ static void c_serv_write_handler(uint32_t char_val, const os_evt * p_evt)
         case OS_EVT_WRITE:
         {// Changing the sample interval
             ret_code_t err_code;
-            err_code = app_timer_stop(m_char_timer_id);
-            APP_ERROR_CHECK(err_code); 
-            err_code = app_timer_start(m_char_timer_id, APP_TIMER_TICKS(char_val), NULL);
+            //err_code = app_timer_stop(m_char_timer_id);
+            //APP_ERROR_CHECK(err_code); 
+            //err_code = app_timer_start(m_char_timer_id, APP_TIMER_TICKS(char_val), NULL);
+            //APP_ERROR_CHECK(err_code); 
+            err_code = app_timer_start(m_led_timer, APP_TIMER_TICKS(char_val), NULL);
             APP_ERROR_CHECK(err_code); 
         }break;
 
@@ -458,8 +470,8 @@ static void sleep_mode_enter(void)
 {
     ret_code_t err_code;
 
-    err_code = bsp_indication_set(BSP_INDICATE_IDLE);
-    APP_ERROR_CHECK(err_code);
+    //err_code = bsp_indication_set(BSP_INDICATE_IDLE);
+    //APP_ERROR_CHECK(err_code);
 
     // Prepare wakeup buttons.
     err_code = bsp_btn_ble_sleep_mode_prepare();
@@ -485,8 +497,8 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
     {
         case BLE_ADV_EVT_FAST:
             NRF_LOG_INFO("Fast advertising.");
-            err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
-            APP_ERROR_CHECK(err_code);
+            //err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
+            //APP_ERROR_CHECK(err_code);
             break;
 
         case BLE_ADV_EVT_IDLE:
@@ -519,8 +531,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
         case BLE_GAP_EVT_CONNECTED:
             NRF_LOG_INFO("Connected.");
-            err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
-            APP_ERROR_CHECK(err_code);
+            //err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
+            //APP_ERROR_CHECK(err_code);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
             APP_ERROR_CHECK(err_code);
@@ -802,10 +814,10 @@ int main(void)
     {
         app_sched_execute();
         idle_state_handle();
-        if(speed_up==1)
-        {
-              download_data();
-        }
+        //if(speed_up==1)
+        //{
+        //      download_data();
+        //}
     }
 }
 
